@@ -57,5 +57,15 @@ func (c *_mysql) Init() {
 }
 
 func (c *_mysql) Close() {
+	if c.db != nil {
+		db, err := c.db.DB()
+		if err != nil {
+			panic(eris.Wrap(err, "gorm DB() error"))
+		}
 
+		err = db.Close()
+		if err != nil {
+			panic(eris.Wrap(err, "gorm Close() error"))
+		}
+	}
 }
