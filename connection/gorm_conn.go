@@ -1,28 +1,50 @@
-package db
+package connection
 
 import (
 	"fmt"
 	"hello_blockchain/config"
+	"log"
 	"time"
 
 	"github.com/rotisserie/eris"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-type _mysql struct {
-	db *gorm.DB // mysql连线
+type _gorm struct {
+	db *gorm.DB
 }
 
-func NewMysql() *_mysql {
-	return &_mysql{}
+func NewGormConn() *_gorm {
+	return &_gorm{
+		db: initDB(),
+	}
 }
 
-func (c *_mysql) Init() {
+func (c *_gorm) Client() *gorm.DB {
+	return c.db
+}
+
+func (c *_gorm) Close() {
+	db, err := c.db.DB()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = db.Close()
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func initDB() *gorm.DB {
+
 	dsn := config.MysqlConn.Username + ":" + config.MysqlConn.Password +
 		"@tcp(" + config.MysqlConn.Host + ":" + config.MysqlConn.Port + ")/" + config.MysqlConn.Database +
 		"?charset=" + config.MysqlConn.Charset + "&parseTime=True&loc=Local"
+
 	db, err := gorm.Open(mysql.New(mysql.Config{
 		DSN:                       dsn,   // DSN data source name
 		DefaultStringSize:         256,   // string 类型字段的默认长度
@@ -51,21 +73,7 @@ func (c *_mysql) Init() {
 	err = sqlDB.Ping()
 	if err != nil {
 		panic(eris.Wrap(err, "mysql ping error"))
-	} else {
-		c.db = db
 	}
-}
 
-func (c *_mysql) Close() {
-	if c.db != nil {
-		db, err := c.db.DB()
-		if err != nil {
-			panic(eris.Wrap(err, "gorm DB() error"))
-		}
-
-		err = db.Close()
-		if err != nil {
-			panic(eris.Wrap(err, "gorm Close() error"))
-		}
-	}
+	return db
 }

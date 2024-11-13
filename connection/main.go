@@ -1,26 +1,46 @@
 package connection
 
-import "context"
+import (
+	"context"
 
-var (
-	Ctx, CtxClose = context.WithCancel(context.TODO())
+	"github.com/valyala/fasthttp"
 )
 
-type Conn interface {
-	// Init 连线初始化
-	Init()
-	// Close 关闭连线
-	Close()
+var (
+	Ctx        = context.Background()
+	ServerName string
+
+	_fc             *fasthttp.Client
+	_gormInterface  GormInterface
+	_redisInterface RedisInterface
+)
+
+type ClientOptions struct {
+	ServiceName string
+	NeedHttp    bool
+	NeedRedis   bool
+	NeedGorm    bool
 }
 
-func Init(option []Conn) {
-	for _, instance := range option {
-		instance.Init()
+func InitClient(opt ClientOptions) {
+	ServerName = opt.ServiceName
+
+	if opt.NeedHttp {
+		_fc = NewFasthttpClient()
+	}
+	if opt.NeedRedis {
+		_redisInterface = NewRedisConn()
+	}
+	if opt.NeedGorm {
+		_gormInterface = NewGormConn()
 	}
 }
 
-func Close(option []Conn) {
-	for _, instance := range option {
-		instance.Close()
+func Close() {
+	if _redisInterface != nil {
+		_redisInterface.Close()
+	}
+	if _gormInterface != nil {
+		_gormInterface.Close()
 	}
 }

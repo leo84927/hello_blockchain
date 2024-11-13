@@ -3,9 +3,6 @@ package main
 import (
 	"fmt"
 	"hello_blockchain/connection"
-	"hello_blockchain/connection/cache"
-	"hello_blockchain/connection/common"
-	"hello_blockchain/connection/db"
 	"hello_blockchain/helper"
 	"hello_blockchain/lib/log"
 
@@ -18,16 +15,9 @@ const (
 
 func main() {
 
-	// 根據server所需，指定要初始化哪些連線
-	needInit := []connection.Conn{
-		cache.NewRedis(),
-		db.NewMysql(),
-		common.NewHttp(),
-	}
-
 	defer func() {
 		// 關閉連線
-		connection.Close(needInit)
+		connection.Close()
 
 		if r := recover(); r != nil {
 			panicErr := eris.New(fmt.Sprintf("%+v", r))
@@ -39,6 +29,11 @@ func main() {
 	// 設定server名稱
 	helper.SetServerName(_serverName)
 
-	// 連線初始化
-	connection.Init(needInit)
+	// 根據server所需，指定要初始化哪些連線
+	connection.InitClient(connection.ClientOptions{
+		ServiceName: _serverName,
+		NeedHttp:    true,
+		NeedRedis:   true,
+		NeedGorm:    true,
+	})
 }

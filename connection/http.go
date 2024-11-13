@@ -1,4 +1,4 @@
-package common
+package connection
 
 import (
 	"crypto/tls"
@@ -8,16 +8,9 @@ import (
 	"github.com/valyala/fasthttp/fasthttpproxy"
 )
 
-type _http struct {
-	fc *fasthttp.Client
-}
+func NewFasthttpClient() *fasthttp.Client {
 
-func NewHttp() *_http {
-	return &_http{}
-}
-
-func (c *_http) Init() {
-	c.fc = &fasthttp.Client{
+	fc := &fasthttp.Client{
 		MaxConnsPerHost: 60000,
 		TLSConfig:       &tls.Config{InsecureSkipVerify: true},
 		ReadTimeout:     config.HttpTimeout,
@@ -25,17 +18,13 @@ func (c *_http) Init() {
 	}
 
 	if config.HttpProxy != "" && config.HttpProxy != "0.0.0.0" {
-		c.fc.Dial = fasthttpproxy.FasthttpHTTPDialer(config.HttpProxy)
+		fc.Dial = fasthttpproxy.FasthttpHTTPDialer(config.HttpProxy)
 	}
+
+	return fc
 }
 
-func (c *_http) Close() {
-	if c.fc != nil {
-		c.fc.CloseIdleConnections()
-	}
-}
-
-func (c *_http) HttpRequest(url, method string, requestBody []byte, headers map[string]string) ([]byte, int, error) {
+func HttpRequest(url, method string, requestBody []byte, headers map[string]string) ([]byte, int, error) {
 
 	req := fasthttp.AcquireRequest()
 	resp := fasthttp.AcquireResponse()
@@ -63,6 +52,6 @@ func (c *_http) HttpRequest(url, method string, requestBody []byte, headers map[
 		}
 	}
 
-	err := c.fc.DoTimeout(req, resp, config.HttpTimeout)
+	err := _fc.DoTimeout(req, resp, config.HttpTimeout)
 	return resp.Body(), resp.StatusCode(), err
 }

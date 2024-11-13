@@ -1,7 +1,6 @@
-package cache
+package connection
 
 import (
-	"context"
 	"hello_blockchain/config"
 
 	"github.com/redis/go-redis/v9"
@@ -9,14 +8,30 @@ import (
 )
 
 type _redis struct {
-	client *redis.Client // redis连线
+	client *redis.Client
 }
 
-func NewRedis() *_redis {
-	return &_redis{}
+func NewRedisConn() *_redis {
+	return &_redis{
+		client: initRedis(),
+	}
 }
 
-func (c *_redis) Init() {
+func (c *_redis) Client() *redis.Client {
+	return c.client
+}
+
+func (c *_redis) Close() {
+	if c.client != nil {
+		err := c.client.Close()
+		if err != nil {
+			panic(eris.Wrap(err, "redis close error"))
+		}
+	}
+}
+
+func initRedis() *redis.Client {
+
 	client := redis.NewClient(&redis.Options{
 		Addr:         config.RedisConn.Addr,
 		Password:     config.RedisConn.Password,
@@ -28,19 +43,10 @@ func (c *_redis) Init() {
 		PoolTimeout:  config.RedisConn.PoolTimeout,
 	})
 
-	err := client.Ping(context.Background()).Err()
+	err := client.Ping(Ctx).Err()
 	if err != nil {
 		panic(eris.Wrap(err, "redis init error"))
-	} else {
-		c.client = client
 	}
-}
 
-func (c *_redis) Close() {
-	if c.client != nil {
-		err := c.client.Close()
-		if err != nil {
-			panic(eris.Wrap(err, "redis close error"))
-		}
-	}
+	return client
 }
