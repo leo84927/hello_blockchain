@@ -7,10 +7,12 @@ import (
 	"hello_blockchain/lib/log"
 
 	"github.com/rotisserie/eris"
+	"github.com/sirupsen/logrus"
 )
 
 const (
 	_serverName = "ethereum"
+	_loglevel   = logrus.WarnLevel
 )
 
 func main() {
@@ -21,7 +23,7 @@ func main() {
 
 		if r := recover(); r != nil {
 			panicErr := eris.New(fmt.Sprintf("%+v", r))
-			log.LogPanic(panicErr)
+			log.LogError(log.FilePanic, panicErr)
 			panic(r)
 		}
 	}()
@@ -32,6 +34,8 @@ func main() {
 	// 根據server所需，指定要初始化哪些連線
 	connection.InitClient(connection.ClientOptions{
 		ServiceName: _serverName,
+		Loglevel:    _loglevel,
+		NeedLogrus:  true,
 		NeedHttp:    true,
 		NeedRedis:   true,
 		NeedGorm:    true,

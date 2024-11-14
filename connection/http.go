@@ -25,6 +25,9 @@ func NewFasthttpClient() *fasthttp.Client {
 }
 
 func HttpRequest(url, method string, requestBody []byte, headers map[string]string) ([]byte, int, error) {
+	if headers == nil {
+		headers = make(map[string]string)
+	}
 
 	req := fasthttp.AcquireRequest()
 	resp := fasthttp.AcquireResponse()
@@ -38,7 +41,12 @@ func HttpRequest(url, method string, requestBody []byte, headers map[string]stri
 	req.Header.SetMethod(method)
 
 	switch method {
-	case "POST", "PUT":
+	case "PUT":
+		method = "POST"
+		headers["Content-Type"] = "application/json"
+		req.SetBody(requestBody)
+	case "POST":
+		headers["Content-Type"] = "application/x-www-form-urlencoded"
 		req.SetBody(requestBody)
 	case "GET":
 		if requestBody != nil {
@@ -46,10 +54,8 @@ func HttpRequest(url, method string, requestBody []byte, headers map[string]stri
 		}
 	}
 
-	if headers != nil {
-		for k, v := range headers {
-			req.Header.Set(k, v)
-		}
+	for k, v := range headers {
+		req.Header.Set(k, v)
 	}
 
 	err := _fc.DoTimeout(req, resp, config.HttpTimeout)

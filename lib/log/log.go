@@ -6,7 +6,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func LogPanic(err error, msgSlice ...string) {
+func LogError(fileName string, err error, msgSlice ...string) {
 	if err == nil {
 		return
 	}
@@ -20,8 +20,12 @@ func LogPanic(err error, msgSlice ...string) {
 	default:
 		errorMsg, _ = sonic.MarshalString(msgSlice)
 	}
+	if fileName == FilePanic {
+		withLevel(zerolog.PanicLevel, 3, FilePanic, errorMsg, formatErrorToJson(err))
+		return
+	}
 
-	withLevel(zerolog.PanicLevel, 3, FilePanic, errorMsg, formatErrorToJson(err))
+	withLevel(zerolog.ErrorLevel, 3, fileName, errorMsg, formatErrorToJson(err))
 }
 
 func formatErrorToJson(err error) string {

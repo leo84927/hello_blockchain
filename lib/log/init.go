@@ -16,6 +16,7 @@ import (
 
 const (
 	FilePanic = "panic_"
+	FileError = "error_"
 )
 
 var (
