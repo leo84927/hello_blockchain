@@ -3,8 +3,6 @@ package connection
 import (
 	"context"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/valyala/fasthttp"
 )
 
@@ -12,7 +10,6 @@ var (
 	Ctx        = context.Background()
 	ServerName string
 
-	_logrus         *logrus.Logger
 	_fc             *fasthttp.Client
 	_gormInterface  GormInterface
 	_redisInterface RedisInterface
@@ -20,8 +17,6 @@ var (
 
 type ClientOptions struct {
 	ServiceName string
-	Loglevel    logrus.Level
-	NeedLogrus  bool
 	NeedHttp    bool
 	NeedRedis   bool
 	NeedGorm    bool
@@ -30,9 +25,6 @@ type ClientOptions struct {
 func InitClient(opt ClientOptions) {
 	ServerName = opt.ServiceName
 
-	if opt.NeedLogrus {
-		_logrus = NewLogrus(opt.Loglevel)
-	}
 	if opt.NeedHttp {
 		_fc = NewFasthttpClient()
 	}

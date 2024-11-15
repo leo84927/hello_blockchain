@@ -1,8 +1,6 @@
 package elk
 
 import (
-	"hello_blockchain/connection"
-
 	"github.com/bytedance/sonic"
 	"github.com/sirupsen/logrus"
 )
@@ -22,5 +20,5 @@ func LogError(level logrus.Level, err error, data map[string]interface{}, msgSli
 		errorMsg, _ = sonic.MarshalString(msgSlice)
 	}
 
-	connection.LogToLogstash(level, err, errorMsg, data)
+	LogToLogstash(level, err, errorMsg, data)
 }

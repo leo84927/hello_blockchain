@@ -1,8 +1,9 @@
-package connection
+package elk
 
 import (
 	"fmt"
 	"hello_blockchain/config"
+	"hello_blockchain/connection"
 	"hello_blockchain/lib/log"
 	"path/filepath"
 	"runtime"
@@ -10,9 +11,12 @@ import (
 	"strings"
 
 	"github.com/rotisserie/eris"
-	"github.com/valyala/fasthttp"
-
 	"github.com/sirupsen/logrus"
+	"github.com/valyala/fasthttp"
+)
+
+var (
+	_logrus *logrus.Logger
 )
 
 type HTTPWriter struct {
@@ -22,21 +26,21 @@ type HTTPWriter struct {
 
 func (w *HTTPWriter) Write(p []byte) (n int, err error) {
 
-	body, code, err := HttpRequest(w.URL, w.Method, p, nil)
+	body, code, err := connection.HttpRequest(w.URL, w.Method, p, nil)
 	if err != nil {
-		log.LogError(log.FileError, err, "log to logstash failed")
+		log.LogError(log.FileError, err, "Send HttpRequest to logstash failed")
 		return 0, err
 	}
 	if code != fasthttp.StatusOK {
 		errMsg := eris.New(string(body))
-		log.LogError(log.FileError, errMsg, "status code not OK")
+		log.LogError(log.FileError, errMsg, "Send HttpRequest to logstash status code not OK")
 		return 0, errMsg
 	}
 
 	return len(p), nil
 }
 
-func NewLogrus(level logrus.Level) *logrus.Logger {
+func getLogger() *logrus.Logger {
 	return &logrus.Logger{
 		Out: &HTTPWriter{
 			URL:    config.LogstashHost,
@@ -63,10 +67,14 @@ func NewLogrus(level logrus.Level) *logrus.Logger {
 			},
 		},
 		ReportCaller: true,
-		Level:        level,
+		Level:        logrus.WarnLevel,
 	}
 }
 
 func LogToLogstash(level logrus.Level, err error, msg string, data map[string]interface{}) {
-	_logrus.WithFields(logrus.Fields{"Server": ServerName}).WithFields(data).WithError(err).Log(level, msg)
+	if _logrus == nil {
+		_logrus = getLogger()
+	}
+
+	_logrus.WithFields(data).WithError(err).Log(level, msg)
 }
