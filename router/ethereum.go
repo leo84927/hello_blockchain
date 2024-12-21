@@ -13,7 +13,12 @@ func EthereumRouter() *router.Router {
 	ethereumGp := handler.Group("/ethereum")
 	{
 		ethereumCtl := new(controller.EthereumController)
-		ethereumGp.GET("/get/balance", ethereumCtl.GetBalance)
+		{
+			// 生成地址
+			ethereumGp.GET("/create/address", ethereumCtl.CreateAddress)
+			// 取得余额
+			ethereumGp.GET("/get/balance", ethereumCtl.GetBalance)
+		}
 	}
 
 	return handler

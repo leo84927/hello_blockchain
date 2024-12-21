@@ -63,9 +63,10 @@ func GetEnvFloat64(key string, defaultValue float64) float64 {
 	return defaultValue
 }
 
+// GetEnvDuration 以秒为单位(需特别注意单位，返回的值要再乘以秒)
 func GetEnvDuration(key string, defaultValue time.Duration) time.Duration {
 	if env.IsSet(key) {
-		return env.GetDuration(key)
+		return env.GetDuration(key) * time.Second
 	}
-	return defaultValue
+	return defaultValue * time.Second
 }

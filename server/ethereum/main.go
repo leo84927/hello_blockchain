@@ -10,9 +10,8 @@ import (
 	"hello_blockchain/router"
 	"time"
 
-	"github.com/valyala/fasthttp"
-
 	"github.com/rotisserie/eris"
+	"github.com/valyala/fasthttp"
 )
 
 func main() {
@@ -42,6 +41,7 @@ func main() {
 		NeedHttp:    true,
 		NeedRedis:   true,
 		NeedGorm:    true,
+		NeedEth:     true,
 	})
 
 	srv := &fasthttp.Server{

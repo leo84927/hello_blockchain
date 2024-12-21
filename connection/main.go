@@ -3,6 +3,7 @@ package connection
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/valyala/fasthttp"
 )
 
@@ -13,6 +14,7 @@ var (
 	_fc             *fasthttp.Client
 	_gormInterface  GormInterface
 	_redisInterface RedisInterface
+	_ethClient      *ethclient.Client
 )
 
 type ClientOptions struct {
@@ -20,6 +22,7 @@ type ClientOptions struct {
 	NeedHttp    bool
 	NeedRedis   bool
 	NeedGorm    bool
+	NeedEth     bool
 }
 
 func InitClient(opt ClientOptions) {
@@ -34,6 +37,9 @@ func InitClient(opt ClientOptions) {
 	if opt.NeedGorm {
 		_gormInterface = NewGormConn()
 	}
+	if opt.NeedEth {
+		_ethClient = NewEthClient()
+	}
 }
 
 func Close() {
@@ -42,5 +48,8 @@ func Close() {
 	}
 	if _gormInterface != nil {
 		_gormInterface.Close()
+	}
+	if _ethClient != nil {
+		_ethClient.Close()
 	}
 }
